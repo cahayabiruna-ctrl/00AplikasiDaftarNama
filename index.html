@@ -3,24 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplikasi Daftar Nama Cerah</title>
+  <title>Aplikasi Daftar Nama Cerah - Fullscreen</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     /* Reset & dasar */
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
       font-family: 'Poppins', sans-serif;
-      background-color: #f0f4ff; /* Latar belakang cerah */
+      background-color: #f0f4ff;
       color: #333;
-      display: flex;
-      justify-content: center;
-      padding: 20px;
     }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Container utama */
     .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 1200px;
       width: 100%;
-      max-width: 900px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2d3748;
+      font-size: 2rem;
+      margin-bottom: 15px;
     }
 
     /* Navbar */
@@ -32,13 +48,13 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       flex-wrap: wrap;
     }
     .navbar input[type="text"] {
       flex: 1;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border: 1px solid #d1d9e6;
       border-radius: 8px;
       background: #ffffff;
@@ -51,7 +67,7 @@
       background: linear-gradient(90deg, #5cb8ff, #34d399);
       border: none;
       color: #fff;
-      padding: 8px 14px;
+      padding: 10px 16px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 0.9rem;
@@ -63,13 +79,6 @@
       transform: translateY(-2px);
     }
 
-    h1 {
-      text-align: center;
-      color: #2d3748;
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-
     /* Form input */
     form {
       background: #ffffff;
@@ -78,7 +87,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
 
@@ -112,6 +121,15 @@
       transform: translateY(-2px);
     }
 
+    /* Area daftar dengan scroll */
+    .list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 5px;
+      scrollbar-width: thin;
+      scrollbar-color: #5cb8ff #f0f4ff;
+    }
+
     /* Card daftar */
     .card {
       background: #ffffff;
@@ -136,12 +154,12 @@
       margin-bottom: 8px;
     }
 
-    /* Border warna kategori (pastel cerah) */
-    .border-blue { border-color: #60a5fa; }   /* Biru pastel */
-    .border-green { border-color: #34d399; }  /* Hijau pastel */
-    .border-orange { border-color: #fbbf24; } /* Oranye pastel */
-    .border-pink { border-color: #f472b6; }   /* Pink pastel */
-    .border-yellow { border-color: #facc15; } /* Kuning pastel */
+    /* Warna border kategori */
+    .border-blue { border-color: #60a5fa; }
+    .border-green { border-color: #34d399; }
+    .border-orange { border-color: #fbbf24; }
+    .border-pink { border-color: #f472b6; }
+    .border-yellow { border-color: #facc15; }
 
     /* Tombol dalam card */
     .btn-card {
@@ -190,8 +208,8 @@
       <button type="submit">Tambah</button>
     </form>
 
-    <!-- Container daftar -->
-    <div id="card-container"></div>
+    <!-- Daftar nama dengan scroll -->
+    <div class="list-container" id="card-container"></div>
   </div>
 
   <script>
@@ -287,13 +305,14 @@
       ];
 
       const worksheet = XLSX.utils.aoa_to_sheet(excelData);
-
       const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+      // Style header
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
         worksheet[cellAddress].s = {
           font: { bold: true, color: { rgb: "FFFFFF" } },
-          fill: { fgColor: { rgb: "38BDF8" } }, /* Biru pastel */
+          fill: { fgColor: { rgb: "38BDF8" } },
           alignment: { horizontal: "center", vertical: "center" },
           border: {
             top: { style: "thin", color: { rgb: "000000" } },
@@ -302,22 +321,6 @@
             right: { style: "thin", color: { rgb: "000000" } }
           }
         };
-      }
-
-      // Style data
-      for (let R = 1; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          worksheet[cellAddress].s = {
-            alignment: { horizontal: "left", vertical: "center" },
-            border: {
-              top: { style: "thin", color: { rgb: "000000" } },
-              bottom: { style: "thin", color: { rgb: "000000" } },
-              left: { style: "thin", color: { rgb: "000000" } },
-              right: { style: "thin", color: { rgb: "000000" } }
-            }
-          };
-        }
       }
 
       worksheet['!cols'] = [5, 20, 30, 15, 20];
