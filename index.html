@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Daftar Nama - Fullscreen Stabil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: #f0f4ff;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Splash Screen */
+    #splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #5cb8ff, #34d399);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      color: #fff;
+    }
+    #splash h1 { font-size: 2rem; margin-bottom: 20px; }
+    #splash button {
+      padding: 12px 24px;
+      background: #fff;
+      color: #333;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 5px;
+    }
+    #splash button:hover { transform: scale(1.05); background: #e2e8f0; }
+
+    /* Container utama */
+    .container {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 10px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Pencarian */
+    .top-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .top-bar input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+    }
+
+    /* Form Input */
+    form {
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    form input, form select {
+      padding: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+    }
+    form button {
+      background: linear-gradient(90deg, #5cb8ff, #34d399);
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    form button:hover { opacity: 0.9; }
+
+    /* Daftar nama */
+    .list-container {
+      flex: 1;
+      overflow-y: auto;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.05);
+    }
+    .card {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 6px solid #5cb8ff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card-header {
+      font-weight: bold;
+      font-size: 1rem;
+      color: #2d3748;
+      margin-bottom: 5px;
+    }
+    .card p { font-size: 0.9rem; color: #444; margin-bottom: 4px; }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-card {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: 0.3s;
+    }
+    .btn-hapus { background: #f87171; color: white; }
+    .btn-hapus:hover { background: #dc2626; }
+    .btn-aksi { background: #34d399; color: white; }
+    .btn-aksi:hover { background: #059669; }
+
+    /* Modal Popup */
+    #modal {
+      display: none; /* Default tertutup */
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .modal-content textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-actions button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-cancel { background: #e5e7eb; }
+    .btn-save { background: #34d399; color: white; }
+    .btn-save:hover { background: #059669; }
+  </style>
+</head>
+<body>
+  <!-- Splash screen -->
+  <div id="splash">
+    <h1>Selamat Datang</h1>
+    <button onclick="buatDatabaseBaru()">Buat Database Baru</button>
+    <button onclick="pilihDatabaseLama()">Pilih Database Lama</button>
+  </div>
+
+  <!-- Aplikasi utama -->
+  <div class="container" id="app-container">
+    <h1 style="text-align:center; margin-bottom:10px;">📋 Daftar Nama</h1>
+
+    <!-- Pencarian -->
+    <div class="top-bar">
+      <input type="text" id="search" placeholder="🔍 Cari nama...">
+    </div>
+
+    <!-- Form Input -->
+    <form id="form-input-nama">
+      <input type="text" id="input-nama" placeholder="Nama" required>
+      <input type="text" id="input-alamat" placeholder="Alamat" required>
+      <input type="text" id="input-hp" placeholder="No. HP" required>
+      <select id="input-keterangan" required>
+        <option value="" disabled selected>Keterangan</option>
+        <option>Keluarga</option>
+        <option>Tetangga</option>
+        <option>Teman Dekat</option>
+        <option>Relasi</option>
+        <option>Lain-lain</option>
+      </select>
+      <button type="submit">Tambah</button>
+    </form>
+
+    <!-- Daftar Nama -->
+    <div class="list-container" id="card-container"></div>
+  </div>
+
+  <!-- Modal untuk catatan aksi -->
+  <div id="modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Catatan Aksi</h3>
+      <textarea id="aksi-textarea" placeholder="Tulis catatan di sini..."></textarea>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="tutupModal()">Batal</button>
+        <button class="btn-save" onclick="simpanAksi()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let fileHandle = null;
+    let data = [];
+    let selectedIndex = null;
+
+    const splash = document.getElementById('splash');
+    const appContainer = document.getElementById('app-container');
+    const form = document.getElementById('form-input-nama');
+    const cardContainer = document.getElementById('card-container');
+    const searchInput = document.getElementById('search');
+    const modal = document.getElementById('modal');
+    const aksiTextarea = document.getElementById('aksi-textarea');
+
+    // Fungsi paksa fullscreen
+    function masukFullscreen() {
+      const elem = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+      }
+    }
+
+    // Periksa jika fullscreen hilang, masuk lagi
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        masukFullscreen();
+      }
+    });
+
+    // Buat database baru
+    async function buatDatabaseBaru() {
+      masukFullscreen();
+      try {
+        fileHandle = await window.showSaveFilePicker({
+          suggestedName: 'daftar_nama.json',
+          types: [{ description: 'File JSON', accept: { 'application/json': ['.json'] } }],
+        });
+        data = [];
+        await simpanKeFile();
+        splash.style.display = 'none';
+        appContainer.style.display = 'flex';
+        renderCards();
+        alert("Database baru berhasil dibuat!");
+      } catch (err) {
+        console.error("Gagal membuat database baru:", err);
+      }
+    }
+
+    // Pilih database lama
+    async function pilihDatabaseLama() {
+      masukFullscreen();
+      try {
+        [fileHandle] = await window.showOpenFilePicker({
+          types: [{ description: 'File JSON', accept: { 'application/json': ['.json'] } }],
+          excludeAcceptAllOption: true,
+          multiple: false,
+        });
+        await bacaDariFile();
+        splash.style.display = 'none';
+        appContainer.style.display = 'flex';
+        renderCards();
+      } catch (err) {
+        console.error("Gagal membuka database lama:", err);
+      }
+    }
+
+    // Simpan data ke file
+    async function simpanKeFile() {
+      if (!fileHandle) return;
+      const writable = await fileHandle.createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+    }
+
+    // Baca data dari file
+    async function bacaDariFile() {
+      if (!fileHandle) return;
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = [];
+      }
+    }
+
+    // Render daftar nama
+    function renderCards(filter = '') {
+      cardContainer.innerHTML = '';
+      data
+        .filter(item => item.nama.toLowerCase().includes(filter.toLowerCase()))
+        .forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="card-header">👤 ${item.nama}</div>
+            <p>📍 ${item.alamat}</p>
+            <p>📞 ${item.hp}</p>
+            <p>📝 ${item.keterangan}</p>
+            ${item.aksi ? `<p><strong>Catatan:</strong> ${item.aksi}</p>` : ""}
+            <div class="btn-group">
+              <button class="btn-card btn-aksi" onclick="bukaModal(${index})">Aksi</button>
+              <button class="btn-card btn-hapus" onclick="hapusData(${index})">Hapus</button>
+            </div>
+          `;
+          cardContainer.appendChild(card);
+        });
+    }
+
+    // Tambah data baru
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      masukFullscreen();
+      const nama = document.getElementById('input-nama').value.trim();
+      const alamat = document.getElementById('input-alamat').value.trim();
+      const hp = document.getElementById('input-hp').value.trim();
+      const keterangan = document.getElementById('input-keterangan').value;
+
+      if (!nama || !alamat || !hp || !keterangan) return;
+
+      data.push({ nama, alamat, hp, keterangan, aksi: "" });
+      await simpanKeFile();
+      renderCards(searchInput.value);
+      form.reset();
+    });
+
+    // Hapus data tertentu
+    async function hapusData(index) {
+      masukFullscreen();
+      if (confirm("Yakin ingin menghapus data ini?")) {
+        data.splice(index, 1);
+        await simpanKeFile();
+        renderCards(searchInput.value);
+      }
+    }
+
+    // Modal Aksi
+    function bukaModal(index) {
+      masukFullscreen();
+      selectedIndex = index;
+      aksiTextarea.value = data[index].aksi || "";
+      modal.style.display = 'flex'; // tampilkan modal
+    }
+
+    function tutupModal() {
+      modal.style.display = 'none'; // sembunyikan modal
+      aksiTextarea.value = "";
+      selectedIndex = null;
+    }
+
+    async function simpanAksi() {
+      masukFullscreen();
+      if (selectedIndex === null) return;
+      data[selectedIndex].aksi = aksiTextarea.value.trim();
+      await simpanKeFile();
+      renderCards(searchInput.value);
+      tutupModal();
+    }
+
+    // Tutup modal jika klik area gelap di luar kotak
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        tutupModal();
+      }
+    });
+
+    // Pencarian real-time
+    searchInput.addEventListener('input', (e) => {
+      renderCards(e.target.value);
+    });
+  </script>
+</body>
+</html>
