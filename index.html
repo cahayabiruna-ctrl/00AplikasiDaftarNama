@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Daftar Nama - Ekspor CSV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* RESET */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%; width: 100%;
+      background: #f0f4ff;
+      font-family: 'Poppins', sans-serif;
+      display: flex; flex-direction: column;
+    }
+
+    /* Splash Screen */
+    #splash {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #5cb8ff, #34d399);
+      display: flex; justify-content: center; align-items: center;
+      flex-direction: column; z-index: 9999; color: #fff;
+    }
+    #splash h1 { font-size: 2rem; margin-bottom: 20px; }
+    #splash button {
+      padding: 12px 24px;
+      background: #fff; color: #333; border: none;
+      border-radius: 10px; font-weight: bold; font-size: 1rem;
+      cursor: pointer; transition: 0.3s;
+    }
+    #splash button:hover { transform: scale(1.05); background: #e2e8f0; }
+
+    /* Container utama */
+    .container {
+      display: none; flex-direction: column;
+      height: 100%; max-width: 1200px;
+      margin: auto; padding: 10px; width: 100%;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: #ffffff; padding: 12px; border-radius: 12px;
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+    }
+    .navbar input {
+      flex: 1; padding: 10px;
+      border: 1px solid #cbd5e0; border-radius: 8px;
+    }
+    .navbar button {
+      background: linear-gradient(90deg, #5cb8ff, #34d399);
+      color: white; padding: 10px 15px;
+      border: none; border-radius: 8px;
+      cursor: pointer; font-weight: bold; transition: 0.3s;
+    }
+    .navbar button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    /* Form Input */
+    form {
+      background: #ffffff; padding: 15px; border-radius: 12px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px; margin-bottom: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    form input, form select {
+      padding: 10px; border: 1px solid #cbd5e0; border-radius: 8px;
+    }
+    form button {
+      background: linear-gradient(90deg, #5cb8ff, #34d399);
+      border: none; color: white; font-weight: bold;
+      border-radius: 8px; cursor: pointer; transition: 0.3s;
+    }
+    form button:hover { opacity: 0.9; }
+
+    /* Daftar nama */
+    .list-container {
+      flex: 1; overflow-y: auto;
+      background: #f9fafb; border-radius: 12px;
+      padding: 10px; box-shadow: inset 0 0 6px rgba(0,0,0,0.05);
+    }
+    .card {
+      background: #fff; padding: 15px; margin-bottom: 10px;
+      border-left: 6px solid #5cb8ff;
+      border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card-header {
+      font-weight: bold; font-size: 1rem; color: #2d3748; margin-bottom: 5px;
+    }
+    .card p { font-size: 0.9rem; color: #444; margin-bottom: 4px; }
+    .btn-card {
+      background: #f87171; color: white; border: none;
+      padding: 6px 12px; border-radius: 8px;
+      cursor: pointer; font-size: 0.8rem; transition: 0.3s;
+    }
+    .btn-card:hover { background: #dc2626; }
+  </style>
+</head>
+<body>
+  <!-- Splash screen -->
+  <div id="splash">
+    <h1>Selamat Datang</h1>
+    <button onclick="startApp()">Mulai Aplikasi</button>
+  </div>
+
+  <!-- Aplikasi utama -->
+  <div class="container" id="app-container">
+    <h1 style="text-align:center; margin-bottom:10px;">📋 Daftar Nama</h1>
+
+    <!-- Navbar -->
+    <div class="navbar">
+      <input type="text" id="search" placeholder="🔍 Cari nama...">
+      <button onclick="exportCSV()">📂 Ekspor CSV</button>
+      <button onclick="hapusSemua()">🗑 Hapus Semua</button>
+    </div>
+
+    <!-- Form Input -->
+    <form id="form-input-nama">
+      <input type="text" id="input-nama" placeholder="Nama" required>
+      <input type="text" id="input-alamat" placeholder="Alamat" required>
+      <input type="text" id="input-hp" placeholder="No. HP" required>
+      <select id="input-keterangan" required>
+        <option value="" disabled selected>Keterangan</option>
+        <option>Keluarga</option>
+        <option>Tetangga</option>
+        <option>Teman Dekat</option>
+        <option>Relasi</option>
+        <option>Lain-lain</option>
+      </select>
+      <button type="submit">Tambah</button>
+    </form>
+
+    <!-- Daftar Nama -->
+    <div class="list-container" id="card-container"></div>
+  </div>
+
+  <script>
+    const splash = document.getElementById('splash');
+    const appContainer = document.getElementById('app-container');
+    const form = document.getElementById('form-input-nama');
+    const cardContainer = document.getElementById('card-container');
+    const searchInput = document.getElementById('search');
+
+    let data = JSON.parse(localStorage.getItem('daftarNama')) || [];
+
+    // Mulai aplikasi fullscreen
+    function startApp() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      }
+      splash.style.display = 'none';
+      appContainer.style.display = 'flex';
+    }
+
+    // Simpan data ke localStorage
+    const saveData = () => localStorage.setItem('daftarNama', JSON.stringify(data));
+
+    // Render daftar nama
+    const renderCards = (filter = '') => {
+      cardContainer.innerHTML = '';
+      data
+        .filter(item => item.nama.toLowerCase().includes(filter.toLowerCase()))
+        .forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="card-header">👤 ${item.nama}</div>
+            <p>📍 ${item.alamat}</p>
+            <p>📞 ${item.hp}</p>
+            <p>📝 ${item.keterangan}</p>
+            <button class="btn-card" onclick="hapusData(${index})">Hapus</button>
+          `;
+          cardContainer.appendChild(card);
+        });
+    };
+
+    // Tambah data baru
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nama = document.getElementById('input-nama').value.trim();
+      const alamat = document.getElementById('input-alamat').value.trim();
+      const hp = document.getElementById('input-hp').value.trim();
+      const keterangan = document.getElementById('input-keterangan').value;
+
+      if (!nama || !alamat || !hp || !keterangan) return;
+
+      data.push({ nama, alamat, hp, keterangan });
+      saveData();
+      renderCards(searchInput.value);
+      form.reset();
+    });
+
+    // Hapus data per item
+    window.hapusData = (index) => {
+      data.splice(index, 1);
+      saveData();
+      renderCards(searchInput.value);
+    };
+
+    // Hapus semua data
+    window.hapusSemua = () => {
+      if (confirm("Yakin ingin menghapus semua data?")) {
+        data = [];
+        saveData();
+        renderCards(searchInput.value);
+      }
+    };
+
+    // Pencarian real-time
+    searchInput.addEventListener('input', (e) => renderCards(e.target.value));
+
+    // Ekspor ke CSV
+    window.exportCSV = () => {
+      if (data.length === 0) {
+        alert("Tidak ada data untuk diekspor.");
+        return;
+      }
+
+      let csvContent = "No,Nama,Alamat,HP,Keterangan\n";
+
+      data.forEach((item, index) => {
+        const row = [
+          index + 1,
+          `"${item.nama}"`,
+          `"${item.alamat}"`,
+          `"${item.hp}"`,
+          `"${item.keterangan}"`
+        ].join(",");
+        csvContent += row + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "Daftar_Nama.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    // Render awal
+    renderCards();
+  </script>
+</body>
+</html>
