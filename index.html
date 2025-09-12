@@ -6,176 +6,103 @@
   <title>Aplikasi Daftar Nama Profesional</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- Library XLSX + XLSX Style untuk ekspor Excel dengan desain -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx-style@0.8.13/dist/xlsx.full.min.js"></script>
+  <!-- SheetJS Library Resmi -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     /* RESET */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      height: 100%;
-      width: 100%;
+      height: 100%; width: 100%;
       background: #f0f4ff;
       font-family: 'Poppins', sans-serif;
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
     }
 
     /* Splash Screen */
     #splash {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       background: linear-gradient(135deg, #5cb8ff, #34d399);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 9999;
-      color: #fff;
+      display: flex; justify-content: center; align-items: center;
+      flex-direction: column; z-index: 9999; color: #fff;
     }
-    #splash h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
+    #splash h1 { font-size: 2rem; margin-bottom: 20px; }
     #splash button {
       padding: 12px 24px;
-      background: #fff;
-      color: #333;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.3s;
+      background: #fff; color: #333; border: none;
+      border-radius: 10px; font-weight: bold; font-size: 1rem;
+      cursor: pointer; transition: 0.3s;
     }
-    #splash button:hover {
-      transform: scale(1.05);
-      background: #e2e8f0;
-    }
+    #splash button:hover { transform: scale(1.05); background: #e2e8f0; }
 
     /* Container utama */
     .container {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-      max-width: 1200px;
-      margin: auto;
-      padding: 10px;
-      width: 100%;
+      display: none; flex-direction: column;
+      height: 100%; max-width: 1200px;
+      margin: auto; padding: 10px; width: 100%;
     }
 
     /* Navbar */
     .navbar {
-      background: #ffffff;
-      padding: 12px;
-      border-radius: 12px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
+      background: #ffffff; padding: 12px; border-radius: 12px;
+      display: flex; gap: 10px; align-items: center;
       margin-bottom: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       flex-wrap: wrap;
     }
     .navbar input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #cbd5e0;
-      border-radius: 8px;
+      flex: 1; padding: 10px;
+      border: 1px solid #cbd5e0; border-radius: 8px;
     }
     .navbar button {
       background: linear-gradient(90deg, #5cb8ff, #34d399);
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.3s;
+      color: white; padding: 10px 15px;
+      border: none; border-radius: 8px;
+      cursor: pointer; font-weight: bold; transition: 0.3s;
     }
-    .navbar button:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
-    }
+    .navbar button:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* Form */
+    /* Form Input */
     form {
-      background: #ffffff;
-      padding: 15px;
-      border-radius: 12px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
+      background: #ffffff; padding: 15px; border-radius: 12px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px; margin-bottom: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
     form input, form select {
-      padding: 10px;
-      border: 1px solid #cbd5e0;
-      border-radius: 8px;
+      padding: 10px; border: 1px solid #cbd5e0; border-radius: 8px;
     }
     form button {
       background: linear-gradient(90deg, #5cb8ff, #34d399);
-      border: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
+      border: none; color: white; font-weight: bold;
+      border-radius: 8px; cursor: pointer; transition: 0.3s;
     }
-    form button:hover {
-      opacity: 0.9;
-    }
+    form button:hover { opacity: 0.9; }
 
     /* Daftar nama */
     .list-container {
-      flex: 1;
-      overflow-y: auto;
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 10px;
-      box-shadow: inset 0 0 6px rgba(0,0,0,0.05);
+      flex: 1; overflow-y: auto;
+      background: #f9fafb; border-radius: 12px;
+      padding: 10px; box-shadow: inset 0 0 6px rgba(0,0,0,0.05);
     }
     .card {
-      background: #fff;
-      padding: 15px;
-      margin-bottom: 10px;
+      background: #fff; padding: 15px; margin-bottom: 10px;
       border-left: 6px solid #5cb8ff;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       transition: 0.3s;
     }
-    .card:hover {
-      transform: translateY(-2px);
-    }
+    .card:hover { transform: translateY(-2px); }
     .card-header {
-      font-weight: bold;
-      font-size: 1rem;
-      color: #2d3748;
-      margin-bottom: 5px;
+      font-weight: bold; font-size: 1rem; color: #2d3748; margin-bottom: 5px;
     }
-    .card p {
-      font-size: 0.9rem;
-      color: #444;
-      margin-bottom: 4px;
-    }
+    .card p { font-size: 0.9rem; color: #444; margin-bottom: 4px; }
     .btn-card {
-      background: #f87171;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      transition: 0.3s;
+      background: #f87171; color: white; border: none;
+      padding: 6px 12px; border-radius: 8px;
+      cursor: pointer; font-size: 0.8rem; transition: 0.3s;
     }
-    .btn-card:hover {
-      background: #dc2626;
-    }
+    .btn-card:hover { background: #dc2626; }
   </style>
 </head>
 <body>
@@ -298,7 +225,7 @@
         return;
       }
 
-      // Susun data untuk Excel
+      // Data untuk Excel
       const excelData = [
         ["LAPORAN DAFTAR KONTAK"],
         ["No", "Nama", "Alamat", "HP", "Keterangan"],
@@ -310,7 +237,7 @@
       // Merge untuk judul
       ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
 
-      // Lebar kolom agar rapi
+      // Lebar kolom
       ws['!cols'] = [
         { wch: 6 },
         { wch: 25 },
@@ -319,45 +246,10 @@
         { wch: 25 }
       ];
 
-      // Style tiap sel
-      const range = XLSX.utils.decode_range(ws['!ref']);
-      for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          if (!ws[cellAddress]) continue;
-
-          let style = {
-            font: { bold: true, sz: 12, color: { rgb: "000000" } },
-            alignment: { horizontal: "left", vertical: "center" },
-            border: {
-              top: { style: "thin", color: { rgb: "000000" } },
-              bottom: { style: "thin", color: { rgb: "000000" } },
-              left: { style: "thin", color: { rgb: "000000" } },
-              right: { style: "thin", color: { rgb: "000000" } }
-            }
-          };
-
-          if (R === 0) {
-            // Judul
-            style.font = { bold: true, sz: 16, color: { rgb: "FFFFFF" } };
-            style.alignment.horizontal = "center";
-            style.fill = { fgColor: { rgb: "1E40AF" } };
-          } else if (R === 1) {
-            // Header
-            style.font = { bold: true, color: { rgb: "FFFFFF" } };
-            style.alignment.horizontal = "center";
-            style.fill = { fgColor: { rgb: "2563EB" } };
-          } else if (C === 0) {
-            // Nomor urut center
-            style.alignment.horizontal = "center";
-          }
-
-          ws[cellAddress].s = style;
-        }
-      }
-
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Daftar Nama");
+
+      // Simpan file Excel
       XLSX.writeFile(wb, "Daftar_Nama_Profesional.xlsx");
     };
 
